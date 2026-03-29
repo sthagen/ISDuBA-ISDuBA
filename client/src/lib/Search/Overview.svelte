@@ -275,7 +275,7 @@
     appStore.clearSelectedDocumentIDs();
     openRow = null;
 
-    const searchColumn = searchTerm ? ` ${searchColumnName}` : "";
+    const searchColumn = !advanced && searchTerm ? ` ${searchColumnName}` : "";
     let queryParam = "";
     if (queryQuery) {
       queryParam = `query=${queryQuery}`;
