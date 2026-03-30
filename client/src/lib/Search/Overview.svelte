@@ -48,11 +48,6 @@
   // Variables derived from URL parameters
   let queryString: any = $derived($qs ? parse($qs) : undefined);
   let searchTerm: string = $derived(queryString?.searchTerm ? queryString.searchTerm : "");
-  let orderBy: string[] = $derived.by(() => {
-    // Allow an empty string to overwrite the order of a selected query
-    if (queryString?.orderBy === "") return [];
-    return queryString?.orderBy ? queryString.orderBy.split(" ") : INITIAL_ORDER;
-  });
   let advanced: boolean = $derived(
     queryString?.advanced !== undefined ? (queryString.advanced === "true" ? true : false) : false
   );
@@ -67,6 +62,17 @@
     const queryByID = $state.snapshot(queries).find((q) => q.id === queryID);
     if (queryByID) return $state.snapshot(queryByID);
     return $state.snapshot(defaultQuery) ?? null;
+  });
+  let orderBy: string[] = $derived.by(() => {
+    if (selectedQuery?.orders && queryString?.orderBy == null) {
+      return selectedQuery.orders;
+    }
+    if (queryString?.orderBy == null) {
+      return INITIAL_ORDER;
+    }
+    // Allow an empty string to overwrite the order of a selected query
+    if (queryString.orderBy === "") return [];
+    return queryString.orderBy.split(" ");
   });
 
   let type: SEARCHTYPES = $derived.by(() => {
