@@ -32,6 +32,7 @@
   const INITIAL_LIMIT = 10;
   const INITIAL_ORDER = ["-critical"];
 
+  let queriesLoaded = $state(false);
   let loading = $state(false);
   let openRow: number | null = $state(null);
   let count = $state(0);
@@ -256,16 +257,10 @@
   };
 
   $effect(() => {
-    // If queryID is defined we expect the data for that query to be fetched but initially the queries are not
-    // loaded so we have to wait until they are. Then we can read the necessary information from selectedQuery
-    // and do the request.
-    const qID = untrack(() => queryID);
-    if (qID !== undefined && queries === null) return;
-
     // This rune is also called when a different was opened. In this case the parameters are reset to their defaults
     // and the count and the results saved in the store are not the expected ones.
     const hash = untrack(() => page.url.hash);
-    if ($qs !== undefined && hash.startsWith("#/search")) {
+    if (queriesLoaded && $qs !== undefined && hash.startsWith("#/search")) {
       fetchData();
     }
   });
@@ -369,6 +364,9 @@
 <div class="mb-8 flex flex-wrap justify-between gap-4">
   <Queries
     selectedType={type}
+    onLoadedQueries={() => {
+      queriesLoaded = true;
+    }}
     onQuerySelected={(id: number | undefined) => {
       const newParameters: SearchParameters = {
         currentPage: 1,
