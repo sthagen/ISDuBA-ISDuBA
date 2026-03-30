@@ -212,7 +212,7 @@
     ) {
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(searchParameters.orderBy.join(" "))}`);
     } else if (
-      !searchParameters.orderBy &&
+      searchParameters.orderBy != undefined &&
       JSON.stringify(orderBy) !== JSON.stringify(INITIAL_ORDER)
     ) {
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
@@ -379,6 +379,7 @@
       const newParameters: SearchParameters = {
         currentPage: 1,
         limit: INITIAL_LIMIT,
+        orderBy: undefined,
         queryID: id === defaultQuery?.id ? undefined : id,
         searchTerm: "",
         type: undefined
