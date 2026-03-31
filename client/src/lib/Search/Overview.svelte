@@ -71,7 +71,9 @@
       return INITIAL_ORDER;
     }
     // Allow an empty string to overwrite the order of a selected query
-    if (queryString.orderBy === "") return [];
+    if (queryString.orderBy === "") {
+      return [];
+    }
     return queryString.orderBy.split(" ");
   });
 
@@ -210,12 +212,14 @@
       searchParameters.orderBy &&
       JSON.stringify(searchParameters.orderBy) !== JSON.stringify(INITIAL_ORDER)
     ) {
+      // Order manually
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(searchParameters.orderBy.join(" "))}`);
-    } else if (
-      searchParameters.orderBy == undefined &&
-      JSON.stringify(orderBy) !== JSON.stringify(INITIAL_ORDER)
-    ) {
-      newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
+    } else if (searchParameters.orderBy == undefined) {
+      // Switch page or unset order manually
+      if (orderBy != undefined && !Object.keys(searchParameters).includes("queryID")) {
+        // Keep previous sort order
+        newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
+      }
     }
 
     if (searchParameters.currentPage !== undefined && searchParameters.currentPage !== 1) {
