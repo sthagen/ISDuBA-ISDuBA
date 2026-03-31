@@ -212,7 +212,7 @@
     ) {
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(searchParameters.orderBy.join(" "))}`);
     } else if (
-      searchParameters.orderBy != undefined &&
+      searchParameters.orderBy == undefined &&
       JSON.stringify(orderBy) !== JSON.stringify(INITIAL_ORDER)
     ) {
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
@@ -286,7 +286,6 @@
     if (queryQuery) {
       queryParam = `query=${queryQuery}`;
     }
-    const orderByParam = queryForFetch ? (query?.orders ?? []) : orderBy;
     let fetchColumns = [...$state.snapshot(columns)];
     let requiredColumns = ["id", "tracking_id", "publisher"];
     for (let c of requiredColumns) {
@@ -300,12 +299,12 @@
 
     if ((queryForFetch && queryForFetch.kind === SEARCHTYPES.EVENT) || type === SEARCHTYPES.EVENT) {
       URLWithoutOffsetAndLimit = encodeURI(
-        `/api/events?${queryParam}&count=1&orders=${orderByParam.join(" ")}&${columnsParam}`
+        `/api/events?${queryParam}&count=1&orders=${orderBy.join(" ")}&${columnsParam}`
       );
     } else {
       const loadAdvisories = type === SEARCHTYPES.ADVISORY;
       URLWithoutOffsetAndLimit = encodeURI(
-        `/api/documents?${queryParam}&advisories=${loadAdvisories}&aggregate=true&count=1&orders=${orderByParam.join(" ")}&results=true&${columnsParam}`
+        `/api/documents?${queryParam}&advisories=${loadAdvisories}&aggregate=true&count=1&orders=${orderBy.join(" ")}&results=true&${columnsParam}`
       );
     }
     appStore.setSearchRequestURL(URLWithoutOffsetAndLimit);
