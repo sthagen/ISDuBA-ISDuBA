@@ -49,11 +49,6 @@
   // Variables derived from URL parameters
   let queryString: any = $derived($qs ? parse($qs) : undefined);
   let searchTerm: string = $derived(queryString?.searchTerm ? queryString.searchTerm : "");
-  let orderBy: string[] = $derived.by(() => {
-    // Allow an empty string to overwrite the order of a selected query
-    if (queryString?.orderBy === "") return [];
-    return queryString?.orderBy ? queryString.orderBy.split(" ") : INITIAL_ORDER;
-  });
   let advanced: boolean = $derived(
     queryString?.advanced !== undefined ? (queryString.advanced === "true" ? true : false) : false
   );
@@ -68,6 +63,19 @@
     const queryByID = $state.snapshot(queries).find((q) => q.id === queryID);
     if (queryByID) return $state.snapshot(queryByID);
     return $state.snapshot(defaultQuery) ?? null;
+  });
+  let orderBy: string[] = $derived.by(() => {
+    if (selectedQuery?.orders && queryString?.orderBy == null) {
+      return selectedQuery.orders;
+    }
+    if (queryString?.orderBy == null) {
+      return INITIAL_ORDER;
+    }
+    // Allow an empty string to overwrite the order of a selected query
+    if (queryString.orderBy === "") {
+      return [];
+    }
+    return queryString.orderBy.split(" ");
   });
 
   let type: SEARCHTYPES = $derived.by(() => {
@@ -205,12 +213,14 @@
       searchParameters.orderBy &&
       JSON.stringify(searchParameters.orderBy) !== JSON.stringify(INITIAL_ORDER)
     ) {
+      // Order manually
       newURL = newURL.concat(`&orderBy=${encodeURIComponent(searchParameters.orderBy.join(" "))}`);
-    } else if (
-      !searchParameters.orderBy &&
-      JSON.stringify(orderBy) !== JSON.stringify(INITIAL_ORDER)
-    ) {
-      newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
+    } else if (searchParameters.orderBy == undefined) {
+      // Switch page or unset order manually
+      if (orderBy != undefined && !Object.keys(searchParameters).includes("queryID")) {
+        // Keep previous sort order
+        newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
+      }
     }
 
     if (searchParameters.currentPage !== undefined && searchParameters.currentPage !== 1) {
@@ -275,7 +285,6 @@
     if (queryQuery) {
       queryParam = `query=${queryQuery}`;
     }
-    const orderByParam = queryForFetch ? (query?.orders ?? []) : orderBy;
     let fetchColumns = [...$state.snapshot(columns)];
     let requiredColumns = ["id", "tracking_id", "publisher"];
     for (let c of requiredColumns) {
@@ -289,12 +298,12 @@
 
     if ((queryForFetch && queryForFetch.kind === SEARCHTYPES.EVENT) || type === SEARCHTYPES.EVENT) {
       URLWithoutOffsetAndLimit = encodeURI(
-        `/api/events?${queryParam}&count=1&orders=${orderByParam.join(" ")}&${columnsParam}`
+        `/api/events?${queryParam}&count=1&orders=${orderBy.join(" ")}&${columnsParam}`
       );
     } else {
       const loadAdvisories = type === SEARCHTYPES.ADVISORY;
       URLWithoutOffsetAndLimit = encodeURI(
-        `/api/documents?${queryParam}&advisories=${loadAdvisories}&aggregate=true&count=1&orders=${orderByParam.join(" ")}&results=true&${columnsParam}`
+        `/api/documents?${queryParam}&advisories=${loadAdvisories}&aggregate=true&count=1&orders=${orderBy.join(" ")}&results=true&${columnsParam}`
       );
     }
     appStore.setSearchRequestURL(URLWithoutOffsetAndLimit);
@@ -371,6 +380,7 @@
       const newParameters: SearchParameters = {
         currentPage: 1,
         limit: INITIAL_LIMIT,
+        orderBy: undefined,
         queryID: id === defaultQuery?.id ? undefined : id,
         searchTerm: "",
         type: undefined
