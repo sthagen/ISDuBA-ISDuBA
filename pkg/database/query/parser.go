@@ -150,8 +150,8 @@ var (
 		">":          curry3((*Parser).pushCmp, gt),
 		">=":         curry3((*Parser).pushCmp, ge),
 		"ilike":      (*Parser).pushILike,
-		"ilikepname": (*Parser).pushILikePName,
-		"ilikepid":   (*Parser).pushILikePID,
+		"ilikepname": pushTypedILike(ilikePName),
+		"ilikepid":   pushTypedILike(ilikePID),
 		"now":        (*Parser).pushNow,
 		"duration":   (*Parser).pushDuration,
 		"+":          curry3((*Parser).pushBinary, add),
@@ -555,26 +555,17 @@ func (p *Parser) pushILike(st *stack) {
 	})
 }
 
-func (p *Parser) pushILikePName(st *stack) {
-	needle := st.pop()
-	needle.checkValueType(stringType)
-	p.UsedSources.add(documentsTable | textTable)
-	st.push(&Expr{
-		exprType:  ilikePName,
-		valueType: boolType,
-		children:  []*Expr{needle},
-	})
-}
-
-func (p *Parser) pushILikePID(st *stack) {
-	needle := st.pop()
-	needle.checkValueType(stringType)
-	p.UsedSources.add(documentsTable | textTable)
-	st.push(&Expr{
-		exprType:  ilikePID,
-		valueType: boolType,
-		children:  []*Expr{needle},
-	})
+func pushTypedILike(typ exprType) func(*Parser, *stack) {
+	return func(p *Parser, st *stack) {
+		needle := st.pop()
+		needle.checkValueType(stringType)
+		p.UsedSources.add(documentsTable | textTable)
+		st.push(&Expr{
+			exprType:  typ,
+			valueType: boolType,
+			children:  []*Expr{needle},
+		})
+	}
 }
 
 func (*Parser) pushNow(st *stack) {

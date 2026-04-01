@@ -358,19 +358,6 @@ func (cm classicMode) ilikePNameWhere(sb *AdvancedSQLBuilder, e *Expr, b *string
 	b.WriteString(ilikeSuffix + `)`)
 }
 
-func (cm cteMode) ilikePNameWhere(sb *AdvancedSQLBuilder, e *Expr, b *strings.Builder) {
-	b.WriteString(`EXISTS (` +
-		`WITH product_names AS (SELECT jsonb_path_query(` +
-		`document, '$.product_tree.**.product.name')::int num ` +
-		`FROM docads ds WHERE ds.id = docads.id)` +
-		`SELECT * FROM documents_texts dts JOIN product_names ` +
-		`ON product_names.num = dts.num JOIN unique_texts ON dts.txt_id = unique_texts.id ` +
-		`WHERE dts.documents_id = docads.id AND ` +
-		`unique_texts.txt ILIKE ` + ilikePrefix)
-	sb.whereRecurse(e.children[0], b, cm)
-	b.WriteString(ilikeSuffix + `)`)
-}
-
 func (cm classicMode) ilikePIDWhere(sb *AdvancedSQLBuilder, e *Expr, b *strings.Builder) {
 	b.WriteString(`EXISTS (` +
 		`WITH product_ids AS (SELECT jsonb_path_query(` +
@@ -384,15 +371,38 @@ func (cm classicMode) ilikePIDWhere(sb *AdvancedSQLBuilder, e *Expr, b *strings.
 	b.WriteString(ilikeSuffix + `)`)
 }
 
+func (cm cteMode) ilikePNameWhere(sb *AdvancedSQLBuilder, e *Expr, b *strings.Builder) {
+	b.WriteString(`EXISTS (` +
+		`WITH product_names AS (` +
+		` SELECT` +
+		`  jsonb_path_query(ds.document, '$.product_tree.**.product.name')::int num` +
+		` FROM docads JOIN documents ds` +
+		`  ON ds.id = docads.id` +
+		`)` +
+		`SELECT * FROM documents_texts dts JOIN product_names` +
+		` ON product_names.num = dts.num JOIN unique_texts` +
+		` ON dts.txt_id = unique_texts.id ` +
+		`WHERE` +
+		` dts.documents_id = docads.id` +
+		` AND unique_texts.txt ILIKE ` + ilikePrefix)
+	sb.whereRecurse(e.children[0], b, cm)
+	b.WriteString(ilikeSuffix + `)`)
+}
+
 func (cm cteMode) ilikePIDWhere(sb *AdvancedSQLBuilder, e *Expr, b *strings.Builder) {
 	b.WriteString(`EXISTS (` +
-		`WITH product_ids AS (SELECT jsonb_path_query(` +
-		`document, '$.product_tree.**.product.product_id')::int num ` +
-		`FROM docads ds WHERE ds.id = docads.id)` +
-		`SELECT * FROM documents_texts dts JOIN product_ids ` +
-		`ON product_ids.num = dts.num JOIN unique_texts ON dts.txt_id = unique_texts.id ` +
-		`WHERE dts.documents_id = docads.id AND ` +
-		`unique_texts.txt ILIKE ` + ilikePrefix)
+		`WITH product_ids AS (` +
+		` SELECT` +
+		`  jsonb_path_query(ds.document, '$.product_tree.**.product.product_id')::int num` +
+		` FROM docads JOIN documents ds` +
+		`  ON ds.id = docads.id` +
+		`)` +
+		`SELECT * FROM documents_texts dts JOIN product_ids` +
+		` ON product_ids.num = dts.num JOIN unique_texts` +
+		` ON dts.txt_id = unique_texts.id ` +
+		`WHERE` +
+		` dts.documents_id = docads.id` +
+		` AND unique_texts.txt ILIKE ` + ilikePrefix)
 	sb.whereRecurse(e.children[0], b, cm)
 	b.WriteString(ilikeSuffix + `)`)
 }
