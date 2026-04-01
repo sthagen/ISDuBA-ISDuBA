@@ -221,6 +221,14 @@
         // Keep previous sort order
         newURL = newURL.concat(`&orderBy=${encodeURIComponent(orderBy.join(" "))}`);
       }
+    } else if (
+      searchParameters.orderBy != undefined &&
+      queryID != undefined &&
+      JSON.stringify(searchParameters.orderBy) == JSON.stringify(INITIAL_ORDER)
+    ) {
+      // If a query is selected it is okay to set the initial order in the URL because otherwise it is
+      // not possible to sort by that order.
+      newURL = newURL.concat(`&orderBy=${encodeURIComponent(searchParameters.orderBy.join(" "))}`);
     }
 
     if (searchParameters.currentPage !== undefined && searchParameters.currentPage !== 1) {
