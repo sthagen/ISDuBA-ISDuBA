@@ -145,7 +145,7 @@
       if (!queryForFetch) {
         return searchTerm || "";
       } else {
-        return `${queryForFetch.queryReset} ${searchTerm ? searchTerm + " and" : ""}`;
+        return `${queryForFetch.query ?? ""} ${searchTerm ? searchTerm + " and" : ""}`;
       }
     }
   });
