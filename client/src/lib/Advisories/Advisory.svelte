@@ -590,7 +590,7 @@
                 ></SsvcCalculator>
               {/if}
             </div>
-            {#if isCommentingAllowed && !isSSVCediting}
+            {#if isCommentingAllowed}
               <div class="mt-6">
                 <Label class="mb-2" for="comment-textarea"
                   >{advisoryState === ARCHIVED && appStore.isEditor()
