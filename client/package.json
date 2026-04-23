@@ -63,7 +63,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@playwright/experimental-ct-svelte": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/chroma-js": "^3.1.2",
     "boxicons": "^2.1.4",
