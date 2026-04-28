@@ -80,15 +80,15 @@
     </button>
     {#if tooltipStates[state]}
       <div
-        class="absolute top-[100%] -right-8 z-10 mt-1 rounded border-1 border-gray-400 bg-white p-2 text-xs text-gray-800 dark:text-gray-200"
+        class="ssvc-tooltip absolute -top-[80%] left-[calc(100%+4px)] z-10 mt-1 rounded border-1 border-gray-400 bg-white p-1 text-xs text-gray-800 dark:text-gray-200"
       >
         {#if tooltipStates[state] === "success"}
-          <div>Copied</div>
-          <div class="font-bold">
-            {vector}
+          <div class="flex items-center gap-1">
+            <i class="bx bx-check text-lg"></i>
+            <span>Copied</span>
           </div>
         {:else}
-          {`Error: Couldn't copy ${vector} to clipboard.`}
+          Error: Couldn't copy the vector.
         {/if}
       </div>
     {/if}
