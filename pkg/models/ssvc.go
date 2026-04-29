@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -103,7 +104,22 @@ func (s ssvc) findDecisionPointByKey(key string) *ssvcDecisionPoint {
 
 func (s *ssvc) validateVector(vector string) error {
 	parts := strings.Split(vector, "/")
-	if len(parts) < 4 {
+	// Parts:
+	// 1: SSVCv2
+	// 2: Exploitation
+	// 3: Automatable
+	// 4: Technical Impact
+	// The order between Mission & Well Being and the optional
+	// Decision Points is not set. Having the mandatory in the middle
+	// makes little sense, but wouldn't necessarily be incorrect.
+	// ToDo: Evaluate whether that should be allowed. No for now.
+	// 5/6/7: Mission Prevalence (Optional, must appear alongside Public Well-Being Impact)
+	// 5/6/7: Public Well-Being Impact (Optional, must appear alongside Mission Prevalence)
+	// 5/7: Mission & Well Being (Optional in theory as long as the other optional decions are set. We require it.)
+	// 6/8: Decision
+	// 7/9: Date
+	// 8/10: End after last /
+	if len(parts) < 8 || len(parts) > 10 {
 		return errors.New("vector has invalid length")
 	}
 	if parts[0] != "SSVCv2" {
@@ -119,12 +135,22 @@ func (s *ssvc) validateVector(vector string) error {
 		return fmt.Errorf("vector timestamp is invalid: %v", err)
 	}
 	decisions := parts[1 : len(parts)-2]
-	for _, decision := range decisions {
+
+	var uniqueLabels []string
+
+	for part, decision := range decisions {
 		key, option, ok := strings.Cut(decision, ":")
 		if !ok {
 			return fmt.Errorf("decision %q has no ':'", decision)
 		}
 		dp := s.findDecisionPointByKey(key)
+		if slices.Contains(uniqueLabels, dp.Label) {
+			return fmt.Errorf("decision about %q was defined multiple times", dp)
+		}
+		uniqueLabels = append(uniqueLabels, dp.Label)
+		if !dp.checkValidOrder(part) {
+			return fmt.Errorf("invalid order of decision points. %q at point %q", dp.Label, part)
+		}
 		if dp == nil {
 			return fmt.Errorf("no decision point with key %q found", key)
 		}
@@ -133,6 +159,26 @@ func (s *ssvc) validateVector(vector string) error {
 		}
 	}
 	return nil
+}
+
+func (d *ssvcDecisionPoint) checkValidOrder(part int) bool {
+	switch d.Label {
+	case "Exploitation":
+		return part == 0
+	case "Automatable":
+		return part == 1
+	case "Technical Impact":
+		return part == 2
+	case "Mission & Well-being":
+		return part == 3 || part == 5
+	case "Mission Prevalence":
+		return 2 < part && 6 > part
+	case "Public Well-being Impact":
+		return 2 < part && 6 > part
+	case "Decision":
+		return part == 4 || part == 6
+	}
+	return true
 }
 
 var parsedSSVCv2 = sync.OnceValue(func() *ssvc {
