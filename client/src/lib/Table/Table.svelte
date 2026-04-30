@@ -355,8 +355,8 @@
           <div class="flex items-center">
             <input
               class={`${numberOfPages < 10000 ? "w-16" : "w-20"} cursor-pointer border pr-1 text-right dark:bg-gray-800`}
-              onchange={() => {
-                let tmpCurrentPage = currentPage;
+              onchange={(event: any) => {
+                let tmpCurrentPage = event.target.value;
                 if (!parseInt("" + tmpCurrentPage)) tmpCurrentPage = 1;
                 tmpCurrentPage = Math.floor(tmpCurrentPage);
                 if (tmpCurrentPage < 1) tmpCurrentPage = 1;
