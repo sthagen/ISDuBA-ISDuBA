@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -135,22 +134,21 @@ func (s *ssvc) validateVector(vector string) error {
 		return fmt.Errorf("vector timestamp is invalid: %v", err)
 	}
 	decisions := parts[1 : len(parts)-2]
-
-	var uniqueLabels []string
+	uniqueKeys := map[string]struct{}{}
 
 	for part, decision := range decisions {
 		key, option, ok := strings.Cut(decision, ":")
 		if !ok {
 			return fmt.Errorf("decision %q has no ':'", decision)
 		}
+		if _, ok = uniqueKeys[key]; ok {
+			return fmt.Errorf("decision about %q was defined multiple times", key)
+		}
+		uniqueKeys[key] = struct{}{}
 		dp := s.findDecisionPointByKey(key)
 		if dp == nil {
 			return fmt.Errorf("no decision point with key %q found", key)
 		}
-		if slices.Contains(uniqueLabels, dp.Label) {
-			return fmt.Errorf("decision about %q was defined multiple times", dp)
-		}
-		uniqueLabels = append(uniqueLabels, dp.Label)
 		if !dp.checkValidOrder(part) {
 			return fmt.Errorf("invalid order of decision points. %q at point %d", dp.Label, part)
 		}
