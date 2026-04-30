@@ -144,6 +144,9 @@ func (s *ssvc) validateVector(vector string) error {
 			return fmt.Errorf("decision %q has no ':'", decision)
 		}
 		dp := s.findDecisionPointByKey(key)
+		if dp == nil {
+			return fmt.Errorf("no decision %q found", key)
+		}
 		if slices.Contains(uniqueLabels, dp.Label) {
 			return fmt.Errorf("decision about %q was defined multiple times", dp)
 		}
