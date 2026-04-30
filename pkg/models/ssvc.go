@@ -149,7 +149,7 @@ func (s *ssvc) validateVector(vector string) error {
 		}
 		uniqueLabels = append(uniqueLabels, dp.Label)
 		if !dp.checkValidOrder(part) {
-			return fmt.Errorf("invalid order of decision points. %q at point %q", dp.Label, part)
+			return fmt.Errorf("invalid order of decision points. %q at point %d", dp.Label, part)
 		}
 		if dp == nil {
 			return fmt.Errorf("no decision point with key %q found", key)
@@ -161,8 +161,8 @@ func (s *ssvc) validateVector(vector string) error {
 	return nil
 }
 
-func (d *ssvcDecisionPoint) checkValidOrder(part int) bool {
-	switch d.Label {
+func (dp *ssvcDecisionPoint) checkValidOrder(part int) bool {
+	switch dp.Label {
 	case "Exploitation":
 		return part == 0
 	case "Automatable":
