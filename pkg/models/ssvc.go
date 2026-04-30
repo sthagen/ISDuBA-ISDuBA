@@ -145,7 +145,7 @@ func (s *ssvc) validateVector(vector string) error {
 		}
 		dp := s.findDecisionPointByKey(key)
 		if dp == nil {
-			return fmt.Errorf("no decision %q found", key)
+			return fmt.Errorf("no decision point with key %q found", key)
 		}
 		if slices.Contains(uniqueLabels, dp.Label) {
 			return fmt.Errorf("decision about %q was defined multiple times", dp)
@@ -153,9 +153,6 @@ func (s *ssvc) validateVector(vector string) error {
 		uniqueLabels = append(uniqueLabels, dp.Label)
 		if !dp.checkValidOrder(part) {
 			return fmt.Errorf("invalid order of decision points. %q at point %d", dp.Label, part)
-		}
-		if dp == nil {
-			return fmt.Errorf("no decision point with key %q found", key)
 		}
 		if dp.findOption(option) == nil {
 			return fmt.Errorf("decision point %q has no option %q", dp.Key, option)
